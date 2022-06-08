@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     // 设置窗口标题
-    setWindowTitle("Picksrc");
+    setWindowTitle("Picksrc - v1.0");
 
     // 禁用输出框的自动格式化和富文本
     ui->textEdit->setAutoFormatting(QTextEdit::AutoNone);
