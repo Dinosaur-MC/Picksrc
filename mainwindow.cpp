@@ -19,12 +19,9 @@ MainWindow::MainWindow(QWidget *parent)
     // 创建 查找结果数量控件 并显示在状态栏
     count = new QLabel(this);
     ui->statusbar->addWidget(count);
-    author = new QLabel("<a href=\"https://github.com/Dinosaur-MC\">Made by [Github]Dinosaur-MC", this);
+    author = new QLabel("<a href=\"https://github.com/Dinosaur-MC/Picksrc.git\">Made by [Github]Dinosaur-MC", this);
     author->setOpenExternalLinks(true);
     ui->statusbar->addPermanentWidget(author);
-
-    // 初始化焦点定位记录变量
-    focus = 0;
 
     // 点击 Research 按钮开始查找
     connect(ui->pushButton, &QPushButton::clicked, this, &MainWindow::check);
@@ -33,6 +30,8 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete count;
+    delete author;
 }
 
 
@@ -49,7 +48,7 @@ void MainWindow::check()    // 检查查找表单是否填写好
     search();
 }
 
-void MainWindow::search()   // 查找函数
+void MainWindow::search()   // 查找函数，每找到一项后保存该项内容并删除当前所有已找过的内容，再继续下一项的查找，直到找不到符合条件的项
 {
     // 预处理文件路径，删除路径首尾的双引号（若有）
     QString filename = ui->leFile->text();
@@ -81,6 +80,7 @@ void MainWindow::search()   // 查找函数
     QStringList strList = {};
     while(!str.isEmpty())
     {
+        // 存在关键词时查找关键词
         if(!ui->leKeyword->text().isEmpty())
         {
             int p = str.indexOf(ui->leKeyword->text(), 0, Qt::CaseSensitive);
@@ -91,6 +91,7 @@ void MainWindow::search()   // 查找函数
             str.remove(0, p + ui->leKeyword->text().count());
         }
 
+        //存在前边界时查找前边界
         if(!edge.isEmpty())
         {
             int ed = str.indexOf(edge, 0, Qt::CaseSensitive);
@@ -104,6 +105,7 @@ void MainWindow::search()   // 查找函数
 
         QString temp;
         int a;
+        // 存在后边界时查找后边界，否者查找换行符'\n'，然后拷贝A到B之间的内容（A = 前边界、关键词，B = 后边界、换行符）
         if(!edge2.isEmpty())
         {
             int ed = str.indexOf(edge2, 0, Qt::CaseSensitive);
@@ -122,10 +124,12 @@ void MainWindow::search()   // 查找函数
             }
         }
 
+        // 若选中Simplify复选框，则简化输出内容，即将字符串中所有的换行符、制表符和连续的空格等替换为一个空格（首尾的则直接删除）
         if(ui->cb_Simplify->isChecked())
         {
             temp = temp.simplified();
         }
+        // 若选中Keep Edge复选框，则将前、后边界补充回输出内容中（若有）
         if(ui->cb_KE->isChecked())
         {
             if(!edge.isEmpty())
@@ -134,11 +138,14 @@ void MainWindow::search()   // 查找函数
                 temp.append(edge2);
         }
         qDebug() << "TEMP: " << temp;
+        // 将单项的输出结果存储到一个列表中
         strList.append(temp);
         str.remove(0, a);
     }
 
     qDebug() << "Searching finished";
+
+    // 显示输出结果
     if(strList.count() == 0)
     {
         qDebug() << "Nothing found.";
@@ -148,15 +155,20 @@ void MainWindow::search()   // 查找函数
     else
     {
         qDebug() << "Found " << strList.count() << " result(s)";
-        ui->textEdit->setText("[Result]");
+        ui->textEdit->setTextColor(Qt::blue);
+        ui->textEdit->setText("[Result]\n");
+        ui->textEdit->setTextColor(Qt::black);
         for(int i = 0; i < strList.count() ; i++)
         {
+            // 明暗条纹
             if(i%2)
                 ui->textEdit->setTextBackgroundColor(QColor(255,255,255));
             else
                 ui->textEdit->setTextBackgroundColor(QColor(240,240,240));
+
             ui->textEdit->append(strList[i]);
         }
+        // 计数
         count->setText(QString("Result Count: ") + QString::number(strList.count()));
     }
 }

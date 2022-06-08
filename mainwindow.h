@@ -24,7 +24,6 @@ private:
     Ui::MainWindow *ui;
     QLabel *count;
     QLabel *author;
-    int focus;
 
 protected:
     void keyPressEvent(QKeyEvent *event);
